@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Genuinify</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
+    h1 {
+      color: #0077b5;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 90%;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    button {
+      background: #0077b5;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 5px;
+    }
+    button:hover {
+      background: #005f8a;
+    }
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 2rem;
+    }
+    .profile-info img {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      margin-bottom: 1rem;
+    }
+    pre {
+      background: #f0f2f5;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+      text-align: left;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .loading {
+      color: #0077b5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🛡️ Welcome to Genuinify</h1>
+    <p>Verify how genuine a LinkedIn or Instagram profile is, before connecting.</p>
+
+    <!-- LinkedIn Login Button -->
+    <button onclick="loginWithLinkedIn()">Login with LinkedIn</button>
+
+    <!-- Manual Verification -->
+    <input type="text" id="profile-url" placeholder="Paste LinkedIn or Instagram Profile URL">
+    <button onclick="verifyProfile()">Verify</button>
+
+    <div class="loading" id="loading-message"></div>
+    <div id="profile-info" class="profile-info"></div>
+    <pre id="result"></pre>
+  </div>
+
+  <script>
+    // Mock data for LinkedIn and Instagram profiles
+    const mockProfiles = {
+      "https://linkedin.com/in/johndoe": {
+        name: "John Doe",
+        headline: "AI Researcher at XYZ",
+        connections: 500,
+        endorsements: 40,
+        image: "https://randomuser.me/api/portraits/men/1.jpg"
+      },
+      "https://linkedin.com/in/shraddha123": {
+        name: "Shraddha Verifier",
+        headline: "CS Student at ABC University",
+        connections: 200,
+        endorsements: 10,
+        image: "https://randomuser.me/api/portraits/women/1.jpg"
+      },
+      "https://instagram.com/johndoe": {
+        name: "John Doe",
+        headline: "Photography Enthusiast",
+        followers: 1000,
+        posts: 150,
+        image: "https://randomuser.me/api/portraits/men/2.jpg"
+      },
+      "https://instagram.com/shraddha123": {
+        name: "Shraddha Verifier",
+        headline: "Techie & Blogger",
+        followers: 500,
+        posts: 80,
+        image: "https://randomuser.me/api/portraits/women/2.jpg"
+      }
+    };
+
+    // Profile Verification Function
+    function verifyProfile() {
+      const url = document.getElementById('profile-url').value.trim();
+      const resultBox = document.getElementById('result');
+      const loadingMessage = document.getElementById('loading-message');
+      const profileInfo = document.getElementById('profile-info');
+
+      resultBox.innerText = "";
+      loadingMessage.innerText = "🔎 Verifying profile... Please wait...";
+      profileInfo.innerHTML = "";
+
+      setTimeout(() => {
+        const profile = mockProfiles[url];
+        let resultMessage = "";
+
+        if (profile) {
+          loadingMessage.innerText = "";
+          profileInfo.innerHTML = ` 
+            <img src="${profile.image}" alt="Profile Image">
+            <h3>${profile.name}</h3>
+            <p><strong>Headline:</strong> ${profile.headline}</p>
+          `;
+          resultMessage += `👤 Name: ${profile.name}\n`;
+          resultMessage += `💼 Headline: ${profile.headline}\n`;
+
+          if (url.includes("linkedin")) {
+            resultMessage += `🔗 Connections: ${profile.connections}+\n`;
+            resultMessage += `✅ Endorsements: ${profile.endorsements}\n`;
+            const credibility = profile.connections > 300 && profile.endorsements > 20 ? "High" : "Medium";
+            resultMessage += `📊 Credibility Score: ${credibility}`;
+          } else if (url.includes("instagram")) {
+            resultMessage += `📱 Followers: ${profile.followers}\n`;
+            resultMessage += `📸 Posts: ${profile.posts}\n`;
+            const credibility = profile.followers > 800 && profile.posts > 100 ? "High" : "Medium";
+            resultMessage += `📊 Credibility Score: ${credibility}`;
+          }
+
+        } else {
+          resultMessage = "❌ Profile not found in our database.";
+          loadingMessage.innerText = "";
+        }
+
+        resultBox.innerText = resultMessage;
+      }, 1500);
+    }
+
+    // ✅ LinkedIn OAuth Function
+    function loginWithLinkedIn() {
+      const clientId = "8633jalt7fj6q7"; // 🔁 Replace with your actual LinkedIn Client ID
+      const redirectUri = "https://genuinify-app.github.io/linkedin/callback";
+      const state = "123456"; // Random value to protect against CSRF
+      const scope = "r_liteprofile%20r_emailaddress"; // Can include more scopes
+
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
+
+      window.location.href = authUrl;
+    }
+  </script>
+</body>
+</html>
